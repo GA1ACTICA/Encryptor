@@ -68,7 +68,7 @@ public class Gui {
         mainJFrame.setSize(940, 600);
         mainJFrame.setLayout(null);
         mainJFrame.setVisible(true);
-        mainJFrame.setResizable(false);
+        mainJFrame.setResizable(true);
         mainJFrame.setLocationRelativeTo(null); // Center the frame on the screen
     }
 
