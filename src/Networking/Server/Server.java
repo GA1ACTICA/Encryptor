@@ -5,6 +5,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import Networking.Threads.Receiver;
+import Networking.Threads.Sender;
 
 public class Server {
 
@@ -36,28 +41,22 @@ public class Server {
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
 
             // Reader
-            new Thread(() -> {
-                try {
-                    String msg;
-                    while ((msg = reader.readLine()) != null) {
-                        System.out.println("Client: " + msg);
-                    }
-                } catch (Exception e) {
-                    System.out.println("Client disconnected");
-                }
-            }).start();
+            Receiver receiver = new Receiver(
+                    msg -> {
+                        System.out.println("Received: " + msg);
+                    },
+                    () -> {
+                        System.out.println("Disconnected");
+                    },
+                    reader);
+
+            new Thread(receiver).start();
 
             // Writer
-            new Thread(() -> {
-                try {
-                    String msg;
-                    while ((msg = console.readLine()) != null) {
-                        writer.println(msg);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
+            BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+
+            Sender sender = new Sender(writer, queue);
+            sender.run();
 
         } catch (Exception e) {
             e.printStackTrace();

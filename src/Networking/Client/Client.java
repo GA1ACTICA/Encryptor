@@ -6,6 +6,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import Networking.Threads.Receiver;
+import Networking.Threads.Sender;
 
 public class Client {
 
@@ -39,28 +44,23 @@ public class Client {
         }
 
         // Reader
-        new Thread(() -> {
-            try {
-                String msg;
-                while ((msg = reader.readLine()) != null) {
-                    System.out.println("Server: " + msg);
-                }
-            } catch (Exception e) {
-                System.out.println("Disconnected");
-            }
-        }).start();
+        Receiver receiver = new Receiver(
+                msg -> {
+                    System.out.println("Received: " + msg);
+                },
+                () -> {
+                    System.out.println("Disconnected");
+                },
+                reader);
+
+        new Thread(receiver).start();
 
         // Writer
-        new Thread(() -> {
-            try {
-                String msg;
-                while ((msg = console.readLine()) != null) {
-                    writer.println(msg);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+
+        Sender sender = new Sender(writer, queue);
+
+        queue.add("hello, world");
 
     }
 
