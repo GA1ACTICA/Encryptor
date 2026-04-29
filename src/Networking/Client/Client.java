@@ -13,6 +13,7 @@ import Networking.Threads.Receiver;
 import Networking.Threads.Sender;
 
 public class Client {
+    private boolean connected = false;
 
     // Initialize socket and input/output streams
     private Socket socket = null;
@@ -26,6 +27,7 @@ public class Client {
         try {
             socket = new Socket(addr, port);
             System.out.println("Connected");
+            connected = true;
 
             console = new BufferedReader(new InputStreamReader(System.in));
 
@@ -50,6 +52,7 @@ public class Client {
                 },
                 () -> {
                     System.out.println("Disconnected");
+                    connected = false;
                 },
                 reader);
 
@@ -62,7 +65,8 @@ public class Client {
         new Thread(sender).start();
 
         try {
-            queue.add(console.readLine());
+            while (connected)
+                queue.add(console.readLine());
         } catch (IOException e) {
             e.printStackTrace();
         }

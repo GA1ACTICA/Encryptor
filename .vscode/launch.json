@@ -9,6 +9,20 @@
             "name": "Client",
             "request": "launch",
             "mainClass": "Networking.Client.Client",
+            "projectName": "Encryptor_75658b17"
+        },
+        {
+            "type": "java",
+            "name": "Server",
+            "request": "launch",
+            "mainClass": "Networking.Server.Server",
+            "projectName": "Encryptor_75658b17"
+        },
+        {
+            "type": "java",
+            "name": "Client",
+            "request": "launch",
+            "mainClass": "Networking.Client.Client",
             "projectName": "Encryptor_8c4d71a1"
         },
         {

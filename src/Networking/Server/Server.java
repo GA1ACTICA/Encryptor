@@ -14,6 +14,8 @@ import Networking.Threads.Sender;
 
 public class Server {
 
+    private boolean connected = false;
+
     // Initialize socket and input stream
     private Socket socket = null;
     private ServerSocket serverSocket = null;
@@ -29,6 +31,8 @@ public class Server {
             System.out.println("Waiting for a client ...");
 
             socket = serverSocket.accept();
+            connected = true;
+
             System.out.println("Client accepted");
             System.out.println("Client IP: " + socket.getInetAddress().getHostAddress());
             System.out.println("Client Host Name: " + socket.getInetAddress().getCanonicalHostName());
@@ -48,6 +52,7 @@ public class Server {
                     },
                     () -> {
                         System.out.println("Disconnected");
+                        connected = false;
                     },
                     reader);
 
@@ -59,7 +64,8 @@ public class Server {
             Sender sender = new Sender(writer, queue);
             new Thread(sender).start();
 
-            queue.add(console.readLine());
+            while (connected)
+                queue.add(console.readLine());
 
         } catch (Exception e) {
             e.printStackTrace();
