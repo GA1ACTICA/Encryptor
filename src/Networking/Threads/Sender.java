@@ -15,7 +15,7 @@ public class Sender implements Runnable {
     @Override
     public void run() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (true) {
                 String msg = queue.take();
                 writer.println(msg);
             }

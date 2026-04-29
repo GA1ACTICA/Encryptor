@@ -59,8 +59,13 @@ public class Client {
         BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
         Sender sender = new Sender(writer, queue);
+        new Thread(sender).start();
 
-        queue.add("hello, world");
+        try {
+            queue.add(console.readLine());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

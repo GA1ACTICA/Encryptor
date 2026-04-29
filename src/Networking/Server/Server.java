@@ -1,6 +1,7 @@
 package Networking.Server;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -56,7 +57,9 @@ public class Server {
             BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
             Sender sender = new Sender(writer, queue);
-            sender.run();
+            new Thread(sender).start();
+
+            queue.add(console.readLine());
 
         } catch (Exception e) {
             e.printStackTrace();
