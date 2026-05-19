@@ -1,9 +1,9 @@
 package command;
 
+import org.jline.reader.LineReader;
+
 import cipherCore.CipherManager;
 import cipherCore.SymbolTransformer;
-
-import org.jline.reader.LineReader;
 
 public class RunCipherCommand implements Command {
     private final LineReader reader;

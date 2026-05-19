@@ -1,7 +1,16 @@
+/**
+ * Project: Encryptor
+ *
+ * Author: Galactica
+ *
+ * Licensed under the GPL 3.0 License.
+ * See LICENSE file in the project root for full license information.
+ *
+ * Copyright © 2026 Galactica
+ */
 package Networking.Server;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;

@@ -13,6 +13,8 @@ import command.Console;
 
 public class Main {
 
+    static LineReader reader = null;
+
     static Highlighter greenHighlighter = new Highlighter() {
         @Override
         public AttributedString highlight(LineReader reader, String buffer) {
@@ -24,7 +26,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Terminal terminal = TerminalBuilder.builder().name("Encryptor Terminal")
                 .encoding(java.nio.charset.Charset.forName("UTF-8")).build();
-        LineReader reader = LineReaderBuilder.builder().terminal(terminal).highlighter(greenHighlighter).build();
+        reader = LineReaderBuilder.builder().terminal(terminal).highlighter(greenHighlighter).build();
 
         Console console = new Console(reader);
 
@@ -33,6 +35,7 @@ public class Main {
         console.register(new command.OperationalStatusCommand());
         console.register(new command.InputCipherKeyCommand(reader));
         console.register(new command.RunCipherCommand(reader));
+        console.register(new command.NetworkCommand(reader));
         console.start();
     }
 }

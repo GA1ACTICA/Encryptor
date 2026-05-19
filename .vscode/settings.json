@@ -1,17 +1,15 @@
 {
-    "java.project.sourcePaths": [
-        "src"
-    ],
-    "java.project.outputPath": "bin",
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar"
-    ],
-    "cSpell.words": [
-        "Ciphersettings",
-        "cksc",
-        "Encryptor",
-        "gson",
-        "rotordownward",
-        "Splitedpos"
-    ]
+  "java.project.sourcePaths": ["src"],
+  "java.project.outputPath": "bin",
+  "java.project.referencedLibraries": ["lib/**/*.jar"],
+  "cSpell.words": [
+    "Ciphersettings",
+    "cksc",
+    "Encryptor",
+    "Galactica",
+    "gson",
+    "rotordownward",
+    "Splitedpos"
+  ],
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable"
 }
