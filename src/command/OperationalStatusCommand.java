@@ -6,6 +6,8 @@ import org.jline.utils.AttributedStyle;
 
 import cipherCore.cipherKeyProcessing.CipherKeyAssembler;
 import cipherCore.cipherKeyProcessing.CipherKeyGenerator;
+import cipherDataHandling.characterCodec.CharacterCodecRepository;
+import cipherDataHandling.characterCodec.CharacterCodecService;
 import console.ConsoleOutput;
 
 public class OperationalStatusCommand implements Command {
@@ -23,5 +25,8 @@ public class OperationalStatusCommand implements Command {
 
     public void execute(String[] args) {
         ConsoleOutput.printLnInfo("Encryptor is operational and ready to use.");
+
+        CharacterCodecService service = new CharacterCodecService(new CharacterCodecRepository());
+        ConsoleOutput.printLnInfo("Character Codec Length: " + service.getCharacterCodecLength());
     }
 }

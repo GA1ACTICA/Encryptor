@@ -2,7 +2,6 @@ package cipherCore.cipherKeyProcessing;
 
 import java.util.ArrayList;
 import CipherData.CipherKeyCache;
-import CipherData.CipherKeyCacheStore;
 import cipherCore.CommonVariables;
 import cipherDataHandling.characterCodec.CharacterCodecRepository;
 import cipherDataHandling.characterCodec.CharacterCodecService;
@@ -39,20 +38,30 @@ class Combining {
     }
 }
 
+class RotorReaderOutput {
+    ArrayList<Integer> leftOverCipherKey;
+    int[] stepping;
+    int[] stepStart;
+    int[] permutationMap;
+
+    RotorReaderOutput(ArrayList<Integer> leftOverCipherKey, int[] stepping, int[] stepStart, int[] permutationMap) {
+        this.leftOverCipherKey = leftOverCipherKey;
+        this.stepping = stepping;
+        this.stepStart = stepStart;
+        this.permutationMap = permutationMap;
+    }
+}
+
 /**
  * 
  */
 public class CipherKeyProcessing {
 
-    private int permutationMapAmount;
+    private static int permutationMapAmount;
 
     public CipherKeyProcessing(int permutationMapAmount) {
-        this.permutationMapAmount = permutationMapAmount;
+        CipherKeyProcessing.permutationMapAmount = permutationMapAmount;
     }
-
-    private static final int MAX_COMBINING_DIGITS = 20;
-    private static final int MAX_ROTOR_COUNT = 2048;
-    private static final int MAX_CONDITION_SEGMENTS = 2048;
 
     public static int[] symbolMappingToIndex(String encrypted) {
 
@@ -67,27 +76,7 @@ public class CipherKeyProcessing {
         return x;
     }
 
-    private static void validateCombiningLength(int stopPos, int availableSize) {
-        if (stopPos < 1 || stopPos > availableSize) {
-            throw new IllegalArgumentException("Invalid cipher segment length: " + stopPos);
-        }
-        if (stopPos > MAX_COMBINING_DIGITS) {
-            throw new IllegalArgumentException("Cipher segment length too large: " + stopPos);
-        }
-    }
-
-    private static void validateRotorCount(int rotorCount, int remainingSize) {
-        if (rotorCount < 1 || rotorCount > MAX_ROTOR_COUNT) {
-            throw new IllegalArgumentException("Invalid rotor count: " + rotorCount);
-        }
-        if (rotorCount > remainingSize / 3 + 1) {
-            throw new IllegalArgumentException("Rotor count exceeds remaining key data: " + rotorCount);
-        }
-    }
-
     static Combining getCombining(ArrayList<Integer> arrayListInput, int stopPos) {
-
-        validateCombiningLength(stopPos, arrayListInput.size());
 
         if (CommonVariables.debug) {
             ConsoleOutput.printDebugInfo("Combining next " + stopPos + " integers from cipher key segment...");
@@ -108,7 +97,7 @@ public class CipherKeyProcessing {
 
     }
 
-    private static ArrayList<Integer> rotorReader(ArrayList<Integer> cipherKeyInteger, int rotorCount) {
+    private static RotorReaderOutput rotorReader(ArrayList<Integer> cipherKeyInteger, int rotorCount) {
 
         int[] stepping = new int[rotorCount];
         int[] startStep = new int[rotorCount];
@@ -128,10 +117,11 @@ public class CipherKeyProcessing {
             }
 
             Combining pm = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
-            permutationMap[i] = pm.value % cipherKeyProcessing.permutationMapAmount;
+            permutationMap[i] = pm.value % CipherKeyProcessing.permutationMapAmount;
 
             cipherKeyInteger = pm.leftOverArrayListInput;
         }
+        return new RotorReaderOutput(cipherKeyInteger, stepping, startStep, permutationMap);
     }
 
     /**
@@ -143,60 +133,59 @@ public class CipherKeyProcessing {
 
         int permutationMapAmount = 100; // fix in future to be based on the units amount of permutation maps
 
+        // reading condition content
         int conditionContent = cipherKeyInteger.getFirst();
         cipherKeyInteger.removeFirst();
 
+        // reading deflector and rotor information
         Combining deflector = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
         cipherKeyInteger = deflector.leftOverArrayListInput;
 
+        // reading rotor amount and rotor information
         Combining rotor = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
         cipherKeyInteger = rotor.leftOverArrayListInput;
 
-        validateRotorCount(rotor.value, cipherKeyInteger.size());
-
-        
-
-        // removed rotor reader
+        RotorReaderOutput rro = rotorReader(cipherKeyInteger, rotor.value);
+        cipherKeyInteger = rro.leftOverCipherKey;
 
         // returns the information if there is no conditions
         if (conditionContent == 0) {
-            return new CipherKeySegmenter(cipherKeyInteger, deflector.value % permutationMapAmount, stepping, startStep,
-                    permutationMap, null,
+            return new CipherKeySegmenter(cipherKeyInteger, deflector.value % permutationMapAmount, rro.stepping,
+                    rro.stepStart,
+                    rro.permutationMap, null,
                     0);
         }
 
         // Reading in Condition amount
-        Combining con = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
-        cipherKeyInteger = con.leftOverArrayListInput;
+        Combining conA = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
+        cipherKeyInteger = conA.leftOverArrayListInput;
 
-        int[] conditions = new int[con.value * 2];
+        int[] conditions = new int[conA.value * 2];
 
         // Extracting ConditionStart And ConditionDuration
-        for (int i = 0; i < con.value * 2; i += 2) {
-
-            Combining conS = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
-            conditions[i] = conS.value;
-
-            Combining conD = getCombining(conS.leftOverArrayListInput, conS.leftOverArrayListInput.getFirst());
-            conditions[i + 1] = conD.value;
-
-            cipherKeyInteger = conD.leftOverArrayListInput;
+        for (int i = 0; i < conA.value * 2; i++) {
+            Combining con = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
+            conditions[i] = con.value;
+            cipherKeyInteger = con.leftOverArrayListInput;
         }
 
         if (conditionContent == 2) {
             Combining conR = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
             int conditionReset = conR.value;
 
-            return new CipherKeySegmenter(cipherKeyInteger, deflector.value % permutationMapAmount, stepping, startStep,
-                    permutationMap,
+            return new CipherKeySegmenter(cipherKeyInteger, deflector.value % permutationMapAmount, rro.stepping,
+                    rro.stepStart,
+                    rro.permutationMap,
                     conditions, conditionReset);
         }
 
-        return new CipherKeySegmenter(cipherKeyInteger, deflector.value % permutationMapAmount, stepping, startStep,
-                permutationMap,
+        return new CipherKeySegmenter(cipherKeyInteger, deflector.value % permutationMapAmount, rro.stepping,
+                rro.stepStart,
+                rro.permutationMap,
                 conditions, 0);
     }
 
+    @Deprecated
     private void validateCipherKey(String cipherKey) {
         if (cipherKey == null || cipherKey.isEmpty()) {
             throw new IllegalArgumentException("Cipher key cannot be null or empty");
@@ -208,13 +197,15 @@ public class CipherKeyProcessing {
      * 
      * @param cipherKey
      */
-    private void cipherKeyReader(String cipherKey) {
+    public CipherKeyCache cipherKeyReader(String cipherKey) {
 
         //
 
         if (cipherKey.length() > CommonVariables.maxCipherKeyLength) {
-            throw new IllegalArgumentException("Cipher key length exceeds maximum allowed: " + CommonVariables.maxCipherKeyLength);
-            // add a feature in future to split the cipher key into multiple parts if it exceeds the maximum length, and process them sequentially or in parallel.
+            throw new IllegalArgumentException(
+                    "Cipher key length exceeds maximum allowed: " + CommonVariables.maxCipherKeyLength);
+            // add a feature in future to split the cipher key into multiple parts if it
+            // exceeds the maximum length, and process them sequentially or in parallel.
         }
 
         ArrayList<Integer> cipherKeyInteger = new ArrayList<Integer>();
@@ -223,7 +214,6 @@ public class CipherKeyProcessing {
             cipherKeyInteger.add(mappedKey[i]);
         }
 
-        
         //
         Combining cipKeyAmount = getCombining(cipherKeyInteger, cipherKeyInteger.getFirst());
         cipherKeyInteger = cipKeyAmount.leftOverArrayListInput;
@@ -258,21 +248,8 @@ public class CipherKeyProcessing {
                 conditions,
                 conditionResets);
 
-        CipherKeyCacheStore.set(x);
-
-    }
-
-    public void runCipherKeyReader(String cipherKey) {
-
-        try {
-            CipherKeyProcessing x = new CipherKeyProcessing();
-            x.cipherKeyReader(cipherKey);
-        } catch (Exception e) {
-            e.printStackTrace();
-            ConsoleOutput.printLnError("Failed to run CipherKeyReader");
-        }
+        return x;
 
     }
 
 }
-<
