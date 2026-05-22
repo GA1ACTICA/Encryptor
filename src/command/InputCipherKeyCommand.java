@@ -1,11 +1,9 @@
 package command;
 
-import java.io.Console;
-
 import org.jline.reader.LineReader;
 import org.jline.utils.AttributedStyle;
 
-import cipherCore.cipherKeyProcessing.CipherKeyProcessing;
+import CipherData.CipherKeyStore;
 import console.ConsoleOutput;
 
 public class InputCipherKeyCommand implements Command {
@@ -32,14 +30,8 @@ public class InputCipherKeyCommand implements Command {
         try {
             String cipherKey = reader
                     .readLine(ConsoleOutput.colorize("Input Cipher Key: ", AttributedStyle.YELLOW) + "> ");
-
-            try {
-                CipherKeyProcessing x = new CipherKeyProcessing();
-
-                x.runCipherKeyReader(cipherKey);
-            } catch (Exception e) {
-                ConsoleOutput.printLnError("An error occurred while processing the cipher key: ");
-            }
+            CipherKeyStore.set(cipherKey);
+            ConsoleOutput.printLnInfo("Cipher Key stored successfully.");
         } catch (Exception e) {
             ConsoleOutput.printLnError("An error occurred: ");
         }

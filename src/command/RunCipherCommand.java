@@ -4,10 +4,13 @@ import org.jline.reader.LineReader;
 
 import cipherCore.CipherManager;
 import cipherCore.SymbolTransformer;
+import cipherCore.cipherKeyProcessing.CipherKeyProcessing;
 import console.ConsoleOutput;
 
 import org.jline.reader.LineReader;
 import org.jline.utils.AttributedStyle;
+
+import CipherData.CipherKeyStore;
 
 public class RunCipherCommand implements Command {
     private final LineReader reader;
@@ -29,6 +32,7 @@ public class RunCipherCommand implements Command {
     }
 
     public void execute(String[] args) {
+
         try {
             ConsoleOutput.printLnInfo("Cipher Condition: either <Encrypt> or <Decrypt>");
 
@@ -49,9 +53,11 @@ public class RunCipherCommand implements Command {
                 CipherManager x = new CipherManager();
                 int[][] symbolMap = SymbolTransformer.mapSymbolToIndex(content.toCharArray());
 
+                CipherKeyProcessing y = new CipherKeyProcessing(100);
+
                 ConsoleOutput.printLnInfo("Running Cipher...");
                 ConsoleOutput.printEssentialInfo(
-                        SymbolTransformer.mapIndexToSymbol(x.runCipher(symbolMap[0], isDecrypt), symbolMap[1]));
+                        SymbolTransformer.mapIndexToSymbol(x.runCipher(symbolMap[0], isDecrypt, y.cipherKeyReader(CipherKeyStore.get())), symbolMap[1]));
                 ConsoleOutput.printLnInfo("<End>");
             } catch (Exception e) {
                 ConsoleOutput.printLnError("An error occurred while running the cipher: ");

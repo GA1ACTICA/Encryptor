@@ -20,7 +20,7 @@ public class CipherKeyGeneratorCommand implements Command {
     public void execute(String[] args) {
         ConsoleOutput.printLnInfo("Encryptor is operational and ready to use.");
 
-        String x = CipherKeyAssembler.cipherKeyAssembly(CipherKeyGenerator.generateWithSeed(1335L));
+        String x = CipherKeyAssembler.cipherKeyAssembly(CipherKeyGenerator.generateWithSeed(133508907L));
 
         ConsoleOutput.printInfo("Generated Cipher Key:");
         ConsoleOutput.printEssentialInfo(x);
